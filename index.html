@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+	<title>Draggable Shelves</title>
+</head>
+<body>
+	<h1 style="text-align: center">Draggable elements playground</h1>
+	<script>
+		'use strict'
+
+		//Global variables
+		var cabinet = {},
+			shelves = [],
+			dragSource = null; // will hold the initial dragged element
+
+		/*
+		*	Cabinet - Singleton Constructor
+		*	Call it without the "new"
+		*	@return - object
+		*/
+		function Cabinet(){
+			var cabinet = {};	
+			//Rewrite the constructor
+			Cabinet = function() {
+				console.log("I'm a singleton, I'm creating the cabinet only once!");
+				return cabinet;
+			}
+			cabinet = document.createElement('div');
+			cabinet.id = "cabinet";
+			cabinet.style.margin = "50px auto";
+			cabinet.style.width = '400px';
+			cabinet.style.height = '300px';
+			cabinet.style.backgroundColor = '#fff';
+			cabinet.style.border = 'solid 1px #000';
+			return cabinet;
+		}
+
+		/*
+		*	Shelf - Constructor, creates a shelf
+		*	Call it with the "new"
+		*	@return - object
+		*/
+		function Shelf(i){
+			var shelf = {}, shelfTitle;
+			shelf = document.createElement('div');
+			shelf.className = 'shelf';
+			shelf.style.MozBoxSizing = 'border-box';
+			shelf.style.boxSizing = "border-box";
+			shelf.style.width = '100%';
+			shelf.style.height = '100px';
+			shelf.style.backgroundColor = '#dfdfdf';
+			shelf.style.border = 'solid 1px #000';
+			shelf.style.borderTop = 'solid 1px #dfdfdf';
+			shelf.style.transition = 'transform .1s ease-out';
+			shelf.style.lineHeight = shelf.style.height;
+			shelf.style.textAlign = 'center';
+			shelf.style.cursor = 'pointer';
+			shelf.draggable = true;
+			shelfTitle = document.createTextNode('Shelf #' + i);
+			shelf.appendChild(shelfTitle);
+			shelf.addEventListener("dragstart", DragHandler, false);
+			shelf.addEventListener("dragend", DragHandler, false);
+			shelf.addEventListener("drop", DragHandler, false);
+			shelf.addEventListener("dragenter", DragHandler, false);
+			shelf.addEventListener("dragleave", DragHandler, false);
+			shelf.addEventListener("dragover", DragHandler, false);
+			shelf.addEventListener("drag", DragHandler, false);
+			shelf.addEventListener("mousedown", DragHandler, false);
+			shelf.addEventListener("mouseup", DragHandler, false);
+			return shelf;
+		}
+
+		//Let's create the cabinet and add it to the page
+		cabinet = Cabinet();
+		document.body.appendChild(cabinet);
+
+		//Fill the cabinet with the shelves;
+		shelves.push(new Shelf(1)); //create first manually in order to get its dimensions
+		cabinet.appendChild(shelves[0]);
+		var numOfShelves = parseInt(cabinet.clientHeight/shelves[0].clientHeight);
+		for(var i = 1; i < numOfShelves; i++) {
+			shelves.push(new Shelf(i+1));
+			cabinet.appendChild(shelves[i]);
+		}
+
+		function DragHandler(event) {
+			if(event.type==='dragstart'){
+				dragSource = this;
+				event.dataTransfer.effectAllowed = 'move';
+				event.dataTransfer.setData('text/html', this.innerHTML);
+				this.style.cursor = 'move';
+				this.style.opacity = '0.4';;				
+				this.style.transform = 'scale(1.2)';
+			}
+			else if(event.type==='mousedown'){	
+				this.style.transform = 'scale(1.2) rotate(4deg)';
+				this.style.cursor = 'move';
+				this.style.opacity = '0.4';
+			}
+			else if(event.type==='mouseup'){
+				this.style.border = 'solid 1px #000';				
+				this.style.transform = 'scale(1)';			
+				this.style.cursor = 'pointer';
+				this.style.opacity = '1';
+			}				
+			else if(event.type==='dragend'){
+				this.style.border = 'solid 1px #000';	
+				this.style.cursor = 'pointer';
+				this.style.opacity = '1';
+				this.style.transform = 'scale(1)';
+			}
+			else if(event.type==='dragenter'){
+				this.style.border = 'dashed 2px blue';
+				dragSource.style.transform = 'scale(1)';
+			}	
+			else if(event.type==='dragleave'){
+				this.style.border = 'solid 1px #000';
+			}
+			else if(event.type==='dragover'){
+				event.preventDefault(); // Required - allows to drop!
+				event.dataTransfer.dropEffect = 'move';
+				this.style.border = 'dashed 2px #df7439';
+			}	
+			else if(event.type==='drop'){
+				event.stopPropagation()	// Stops some browsers from redirecting.	
+				if (dragSource != this) { // if not the same element, copy its content
+    				dragSource.innerHTML = this.innerHTML;
+    				this.innerHTML = event.dataTransfer.getData('text/html');
+    				this.style.border = 'solid 1px #000';
+  				}
+			}					
+			return false;
+		}
+	</script>
+</body>
+</html>
