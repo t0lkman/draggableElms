@@ -44,7 +44,7 @@
 		function Shelf(i){
 			var shelf = {}, shelfTitle;
 			shelf = document.createElement('div');
-			shelf.title = 'Double click on me in order to edit my content, ESC to finish';
+			shelf.title = 'Double click on me in order to edit my content, ESC/Enter to finish';
 			shelf.className = 'shelf';
 			shelf.style.MozBoxSizing = 'border-box';
 			shelf.style.boxSizing = "border-box";
@@ -96,25 +96,32 @@
 				this.contentEditable = true;
 				this.style.backgroundColor = '#fff';
 				if(this.textContent.indexOf('Shelf #') !== -1){ // Give the tip only for the default shelf title
-					EditHandler.firstKeyStroke = false;
+					EditHandler.firstKeyStroke = true;
+					EditHandler.originalTitle = this.textContent;
 					this.innerHTML = 'Start Typing...';
 				}
 				this.focus();
 
 			}
-			else if(event.type==='keydown') {
-				if(event.keyCode === 27){
+			else if(event.type==='keydown') {			
+				if(EditHandler.firstKeyStroke){
+			    	this.innerHTML = '';
+				}
+				if(event.keyCode === 27 || event.keyCode == 13){
+					if(this.textContent === ''){
+						this.textContent = EditHandler.originalTitle;
+					}
 					this.blur();
 					this.contentEditable = false;
 					this.style.backgroundColor = '#dfdfdf';
-				}
-				if(!EditHandler.firstKeyStroke){
-				    this.innerHTML = '';
-				}
-				EditHandler.firstKeyStroke = true; // taking advantage that function is actually an object in JS, let us keep global namespace cleaner
+				}				
+				EditHandler.firstKeyStroke = false; // taking advantage that function is actually an object in JS, let us keep global namespace cleaner
 			}
-			if(event.type==='blur'){
+			else if(event.type==='blur'){
 				this.contentEditable = false;
+				if(this.textContent === 'Start Typing...'){ // bring back the original title if it wasn't changed
+					this.textContent = EditHandler.originalTitle;
+				}
 				this.style.backgroundColor = '#dfdfdf';
 			}			
 			return false;
