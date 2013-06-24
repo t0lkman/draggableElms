@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+	<meta charset="UTF-8">
 	<title>Draggable Shelves</title>
 </head>
 <body>
@@ -44,6 +44,7 @@
 		function Shelf(i){
 			var shelf = {}, shelfTitle;
 			shelf = document.createElement('div');
+			shelf.title = 'Double click on me in order to edit my content, ESC to finish';
 			shelf.className = 'shelf';
 			shelf.style.MozBoxSizing = 'border-box';
 			shelf.style.boxSizing = "border-box";
@@ -68,6 +69,10 @@
 			shelf.addEventListener("drag", DragHandler, false);
 			shelf.addEventListener("mousedown", DragHandler, false);
 			shelf.addEventListener("mouseup", DragHandler, false);
+			shelf.addEventListener("keydown", EditHandler, false);
+			shelf.addEventListener("keyup", EditHandler, false);
+			shelf.addEventListener("dblclick", EditHandler, false);
+			shelf.addEventListener("blur", EditHandler, false);
 			return shelf;
 		}
 
@@ -84,6 +89,38 @@
 			cabinet.appendChild(shelves[i]);
 		}
 
+		//Handles edit events
+		function EditHandler(event){
+			if(event.type==='dblclick'){
+				event.preventDefault();
+				this.contentEditable = true;
+				this.style.backgroundColor = '#fff';
+				if(this.textContent.indexOf('Shelf #') !== -1){ // Give the tip only for the default shelf title
+					EditHandler.firstKeyStroke = false;
+					this.innerHTML = 'Start Typing...';
+				}
+				this.focus();
+
+			}
+			else if(event.type==='keydown') {
+				if(event.keyCode === 27){
+					this.blur();
+					this.contentEditable = false;
+					this.style.backgroundColor = '#dfdfdf';
+				}
+				if(!EditHandler.firstKeyStroke){
+				    this.innerHTML = '';
+				}
+				EditHandler.firstKeyStroke = true; // taking advantage that function is actually an object in JS, let us keep global namespace cleaner
+			}
+			if(event.type==='blur'){
+				this.contentEditable = false;
+				this.style.backgroundColor = '#dfdfdf';
+			}			
+			return false;
+		}
+
+		//Handles dragging events
 		function DragHandler(event) {
 			if(event.type==='dragstart'){
 				dragSource = this;
@@ -93,7 +130,8 @@
 				this.style.opacity = '0.4';;				
 				this.style.transform = 'scale(1.2)';
 			}
-			else if(event.type==='mousedown'){	
+			else if(event.type==='mousedown'){
+				this.contentEditable = false;
 				this.style.transform = 'scale(1.2) rotate(4deg)';
 				this.style.cursor = 'move';
 				this.style.opacity = '0.4';
